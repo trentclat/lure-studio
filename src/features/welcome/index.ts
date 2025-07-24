@@ -1,0 +1,1 @@
+export { WelcomeHero } from './components/welcome-hero' 
