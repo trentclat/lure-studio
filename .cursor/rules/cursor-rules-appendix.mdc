@@ -1,0 +1,49 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+title: References Snippets
+description: Three appendix snippets with fenced code blocks for `.mdc`
+---
+
+
+
+```tsx
+// Appendix A — Dynamic import for heavy 3D
+import dynamic from 'next/dynamic';
+
+const Viewer = dynamic(() => import('./Viewer'), {
+  ssr: false,
+  loading: () => <Spinner/>
+});
+
+
+// Apendix B - React query hook (mesh)
+// references/useMesh.hook.ts
+import { useQuery } from '@tanstack/react-query';
+import { meshApi } from '../infrastructure/meshApi';
+
+export const useMesh = (id: string) =>
+  useQuery(['mesh', id], () => meshApi.fetch(id), { staleTime: 5 * 60 * 1000 });
+
+
+// appendix c - tailwind variants with cva
+
+// references/button.variants.ts
+import { cva } from 'class-variance-authority';
+
+export const button = cva('px-4 py-2 rounded', {
+  variants: {
+    intent: {
+      primary: 'bg-blue-600 text-white',
+      ghost: 'bg-transparent'
+    }
+  }
+});
+
+
+
+
+```

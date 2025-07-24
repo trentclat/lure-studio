@@ -1,0 +1,12 @@
+---
+description: if you are going to create a new query for a decision, use this template
+globs: 
+alwaysApply: false
+---
+# ADR: <Title>
+- Date: YYYY-MM-DD
+- Status: Proposed | Accepted | Superseded by X
+- Context: problem, constraints
+- Decision: what & why
+- Consequences: trade-offs, impact
+

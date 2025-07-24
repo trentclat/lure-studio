@@ -1,0 +1,223 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+title: Cursor Rules
+description: Guardrails for Fishing-Lure R&D Tool (Next.js + TS + React + Tailwind)
+---
+
+# cursor-rules.mdc
+
+**Project:** Fishing-Lure R&D Tool (concept → prototype)  
+**Stack:** Next.js • TypeScript • React • Tailwind CSS • WebGL/Three.js (or similar) • Blender automation (MCP/CLI) • AI image/gen workflows  
+**Scale:** Hundreds of authenticated users, small engineering team  
+**Goals:** Simplicity • Scalability • Fast & Safe Deployment
+
+---
+
+## 0. TL;DR
+- KISS & YAGNI: build the smallest thing that works; optimize only when pain appears.  
+- Single Responsibility everywhere: one reason to change per module/component/hook.  
+- Boundaries first: domain code is framework-agnostic; React/Next.js live at the edges.  
+- Performance by design: lazy-load heavy 3D modules, cache, measure.  
+- Automate the ship: CI must pass; builds reproducible; rollbacks one click.  
+- AI assistants are pair programmers, not architects: constrain with context/rules; review everything.
+
+---
+
+## 1. Architecture Principles & Constraints
+
+**Core Principles**
+- SOLID (focus SRP & DIP).  
+- KISS / YAGNI / DRY (prefer readability over premature abstraction).  
+- Clean Architecture layers:
+  - Domain: pure lure logic (no React/Next).
+  - Application: orchestrates domain via interfaces.
+  - Interface: React components, Next.js routes, adapters.
+
+**Project Structure**
+- `/src/domain` (pure TS entities/services).  
+- `/src/application` (use-cases, ports).  
+- `/src/infrastructure` (DB/storage/Blender/AI clients).  
+- `/src/features/<feature>/` (components, hooks, api, tests).  
+- `/src/ui` (design system primitives).  
+- `/src/lib` (small utils).  
+- `/pages` or `/app` (Next.js routing).
+
+**Rules**
+- If it imports React → not in `/domain`.  
+- If it imports Next.js APIs → stay in feature `api/` or `pages|app`.  
+- TypeScript strict mode on; avoid `any`; prefer generics/unknown + zod.  
+- Introduce TS Project References when build times or boundaries hurt.
+
+---
+
+## 2. Next.js & React Rules
+
+**Rendering Modes**
+- Marketing/docs → SSG or ISR.  
+- Auth dashboards → SSR or RSC.  
+- 3D preview snapshots → ISR or on-demand revalidate.  
+- Document chosen mode in a comment at the top of each route file.
+
+**Performance & Bundles**
+- `next/dynamic` for WebGL/Three.js/Blender bridge.  
+- Split big feature bundles; analyze regularly.  
+- Memoize expensive components; prefer pure functions and custom hooks.
+
+**Component Patterns**
+- Container vs Presentational split.  
+- Custom hooks for shared logic (`useGeometry`, etc.).  
+- Compound components for complex widgets (e.g., `<ColorPicker>`).  
+- Favor composition over inheritance.
+
+**State Management**
+- Local UI state inside components.  
+- Shared session state via Context or zustand.  
+- Server/cache state with TanStack Query (react-query).
+
+---
+
+## 3. Tailwind CSS & UI Consistency
+
+- Centralize tokens in `tailwind.config.js`.  
+- Use utilities; extract repeated class patterns (clsx/cva).  
+- Keep CSS small: correct purge/content globs; safelist only what’s needed.  
+- Minimal `@apply`; prefer components for reuse.
+
+---
+
+## 4. Data, APIs & 3D/AI Pipelines
+
+**API Design**
+- Next.js API routes as BFF; each feature owns its routes.  
+- Heavy/long jobs → background worker/queue (cron/ECS/etc.).  
+- Storage providers abstracted behind interfaces.
+
+**Assets & 3D**
+- Serve large OBJ/GLB/textures via CDN; never block UI.  
+- Consider client-side WASM for heavy mesh ops.  
+- Blender automation via CLI/RPC; strict JSON schemas for jobs/results.
+
+**AI Integrations**
+- Wrap AI calls in typed services.  
+- Never expose secrets client-side; use serverless/edge with env vars.
+
+---
+
+## 5. Deployment & Operations
+
+**CI/CD**
+- Every PR: type-check, lint, test, build.  
+- Use GitHub Actions/Vercel CI.  
+- Docker multi-stage builds if not on Vercel.  
+- Rollback fast (Vercel revert or blue/green).
+
+**Infrastructure as Code**
+- Terraform/Pulumi for DNS, buckets, queues, DBs.  
+- No click-ops; document every resource.
+
+**Observability**
+- Frontend errors → Sentry (or similar).  
+- API/server logs → Datadog/ELK.  
+- Track latency/errors/cache hit-rate on shared dashboards.
+
+---
+
+## 6. Security & Compliance
+
+- Treat all user data as sensitive.  
+- Server-side authz on every API route.  
+- HTTPS-only; secure httpOnly cookies.  
+- Scan for secrets pre-commit (git-secrets).  
+- Rate-limit heavy endpoints (AI/Blender).  
+- Validate/escape all 3D model inputs.
+
+---
+
+## 7. Testing Strategy
+
+**Layers & Types**
+- Domain: Jest/Vitest unit tests (fast, pure TS).  
+- Application: integration tests with mocked adapters.  
+- Interface/API: E2E with Playwright/Cypress (login, upload, preview).  
+- Performance: Lighthouse/Next analytics (budget LCP/TTFB, watch regressions).
+
+**Rule**
+- Failing tests block merges.  
+- Add tests when fixing bugs.
+
+---
+
+## 8. Git, Branching & PR Discipline
+
+- Branches: `feat/<scope>`, `fix/<scope>`, `chore/<scope>`.  
+- Conventional Commits (`feat: add lure variant editor`).  
+- Small PRs (<400 LOC diff).  
+- PR description: context, changes, testing, screenshots (if UI).
+
+---
+
+## 9. Using AI Safely (Cursor, Claude, Copilot, etc.)
+
+**Guardrails for Prompts**
+- Always include: context, constraints (link this file), acceptance criteria, file boundaries, output format.  
+
+**Prompt Template**
+```md
+You are helping in a Next.js + TS + React + Tailwind project.
+Follow cursor-rules.md (SOLID, Clean Architecture, no React in /domain, etc.).
+
+Task:
+- [describe task]
+
+Constraints:
+- No global state unless specified.
+- Use next/dynamic for heavy 3D modules.
+- Strict TypeScript; no 'any'.
+- Add unit tests for domain logic.
+
+Acceptance Criteria:
+- [testable outcomes]
+
+Return:
+- Only modified files as unified diffs.
+- No unrelated changes.
+
+
+## 10. Performance Playbook
+- Measure first (Next profiler, browser devtools, Vercel analytics).
+- Fix biggest rocks: bundle size, 3D asset loading, re-renders.
+- Edge cache static/generated previews (proper headers).
+- Use Web Workers/WASM for heavy compute.
+- Memoize/suspend carefully (memo/useMemo/useCallback).
+
+## 11. Documentation & ADRs
+- Non-trivial decisions → ADR in `/docs/adr/YYYY-MM-DD-<title>.md`.
+- Keep README current (run/build/deploy).
+- JSDoc/TSDoc for core domain types & tricky utils.
+
+## 13. Quick Checklists
+
+### New Feature
+- [ ] Problem defined  
+- [ ] KISS/YAGNI respected  
+- [ ] Correct layer (domain vs interface)  
+- [ ] Tests added/updated  
+- [ ] Perf implications considered  
+- [ ] Docs/ADR updated if needed  
+
+### PR Review
+- [ ] Single responsibility  
+- [ ] No architecture violations  
+- [ ] Type-safe (no `any`)  
+- [ ] Tests pass locally & CI  
+- [ ] AI code reviewed thoroughly
+
+
+
+
+
+
